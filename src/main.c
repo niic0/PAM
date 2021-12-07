@@ -18,7 +18,6 @@ DATA* pam_verbose(DATA data_set, size_t nbr_cluster);
 int command(char** argv, DATA** clusters, int* nbr_clusters);
 
 
-
 int main(int argc, char *argv[]) {
   DATA* clusters;
   int nbr_cluster;
@@ -186,13 +185,22 @@ DATA* pam_verbose (DATA dataset, size_t nbr_cluster) {
     medoids_ranks[medoid_rank] = cluster_rank;
     is_medoid[medoids_ranks[medoid_rank]] = true;
 
+
     for (size_t j=0; j<nbr_cluster; j++)
       print_element(dataset.objets[medoids_ranks[j]], size_objets);
   }
 
+  DATA* clusters = create_clusters(dataset, medoids_ranks, nbr_cluster, nbr_objets, distance);
+
+  printf("\n# Clusters\n");
+  for (size_t i=0; i < nbr_cluster; i++) {
+    printf("-> cluster[%ld]\n", i+1);
+    print_values(clusters[i]);
+  }
+
   printf("\n//-> Coût final : %ld\n", cost);
 
-  return create_clusters(dataset, medoids_ranks, nbr_cluster, nbr_objets, distance);;
+  return clusters;
 }
 
 
@@ -217,8 +225,10 @@ int command(char** argv, DATA** clusters, int* nbr_clusters) {
 
     if ((argv[4]!=NULL) && !strcmp(argv[4], "-v"))
       *clusters = pam_verbose(dataset, (size_t)*nbr_clusters);
-    else
+    else {
+      printf("\n[NOTE]\nLe contenu des clusters peut être obtenue avec la commande: ./pam -f data.csv 4 -v\n");
       *clusters = pam(dataset, (size_t)*nbr_clusters);
+    }
   }
 
   // Mode avec affichage de chaque étape de l'algorithme
