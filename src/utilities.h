@@ -3,13 +3,14 @@
 
 #include "data.h" // pour le type data et elmnt
 
-// Indique si l'objet (indique par son rang idx) est le medoid d'un cluster
+// Indique si l'objet (indiqué par son rang idx) est le medoid d'un cluster
 int is_medoid(DATA* dist, size_t idx, size_t nbr_cluster);
 
-// Renvoie la chaine de caracteres correspondant au ang num et a la ligne line
+// Renvoie la chaîne de caractères correspondant au rang num et la ligne line
 char* getfield_csv(char* line, size_t num);
 
 // Retourne un nombre aléatoire entre 0 et le maximum indiqué en évitant des valeurs
+// comprisent dans is_medoid
 int pick_rand_number(size_t max, bool* is_medoid);
 
 // Renvoie 1 si la valeur est un nombre, 0 sinon
@@ -23,6 +24,5 @@ void print_element(OBJET data, size_t size_objet);
 
 // Affiche l'utilisation du programme
 void usage();
-
 
 #endif // UTILITIES_H_

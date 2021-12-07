@@ -12,14 +12,12 @@
 
 // Implémentation de l'algorithme PAM avec un affichage simple dans le terminal
 DATA* pam(DATA data_set, size_t nbr_cluster);
-
 // Implémentation de l'algorithme PAM avec un affichage de chaque étapes dans le terminal
 DATA* pam_verbose(DATA data_set, size_t nbr_cluster);
+// Prend en charge les arguments de la commande ./pam
 int command(char** argv, DATA** clusters, int* nbr_clusters);
 
-// TODO faire les free
-// TODO etre coherant dans les noms de variables, les espaces, les types de variables (const ?)...
-// TODO faire usage
+
 
 int main(int argc, char *argv[]) {
   DATA* clusters;
@@ -33,7 +31,7 @@ int main(int argc, char *argv[]) {
   }
 
   // Affichage des Medoids trouvés
-  printf("# Medoids\n");
+  printf("\n# Medoids\n");
   for (size_t k=0; k < (size_t)nbr_cluster; k++)
     print_element(clusters[k].medoid, clusters[k].size_objets);
 
@@ -63,7 +61,6 @@ DATA* pam (DATA dataset, size_t nbr_cluster) {
 
   // # Initialisation : Objets de départ pris au hasard
   srand(getpid());
-  // TODO change nb_objets to the max value (as it is in the function)
   for(size_t i=0; i<nbr_cluster; i++)
     medoids_ranks[i] = pick_rand_number(nbr_objets, is_medoid);
 
@@ -76,6 +73,9 @@ DATA* pam (DATA dataset, size_t nbr_cluster) {
   int medoids_ranks_candidat[nbr_cluster];
 
   // # SWAP : On cherche maintenant la meilleur position
+  // Les valeurs "candidat" sont les valeurs qui pourraient potentiellement remplacer les valeurs "actual".
+  // Les valeurs "actual" sont les valeurs qui pourraient potentiellement remplacer les valeurs final
+  // (meilleur coût et meilleur medoids)
   while(1) {
     if (cost_before <= cost) break;  // Si la coût ne diminue plus, arreter la boucle
     cost_before = cost;
@@ -83,12 +83,12 @@ DATA* pam (DATA dataset, size_t nbr_cluster) {
     for (size_t y=0; y < nbr_cluster; y++) {
       for (size_t k=0; k < nbr_objets; k++) {
         if (is_medoid[k]) continue;
-        for (size_t j=0; j<nbr_cluster; j++) medoids_ranks_candidat[j] = medoids_ranks[j];
+
+        for (size_t j=0; j < nbr_cluster; j++)
+          medoids_ranks_candidat[j] = medoids_ranks[j];
 
         size_t cost_candidat;
-
         medoids_ranks_candidat[y] = k;
-
         cost_candidat = get_cost(medoids_ranks_candidat, nbr_cluster, nbr_objets, distance);
 
         if (cost_candidat < cost_actual) {
@@ -107,9 +107,9 @@ DATA* pam (DATA dataset, size_t nbr_cluster) {
     is_medoid[medoids_ranks[medoid_rank]] = true;
   }
 
-  printf("Cout final : %ld\n", cost);
+  printf("\n//-> Coût final : %ld\n", cost);
 
-  return create_clusters(dataset, medoids_ranks, nbr_cluster, nbr_objets, distance);;
+  return create_clusters(dataset, medoids_ranks, nbr_cluster, nbr_objets, distance);
 }
 
 
@@ -118,6 +118,9 @@ DATA* pam (DATA dataset, size_t nbr_cluster) {
  * un affichage dans le terminal à chaque étape
 */
 DATA* pam_verbose (DATA dataset, size_t nbr_cluster) {
+  printf("# DATASET\n");
+  print_values(dataset);
+
   if (nbr_cluster > dataset.nbr_objets) {
     fprintf(stderr, "Le nombre de clusters voulue est superieur au nombre d'elements ! Sortie du programme...\n");
     exit(EXIT_FAILURE);
@@ -141,10 +144,9 @@ DATA* pam_verbose (DATA dataset, size_t nbr_cluster) {
     print_element(dataset.objets[medoids_ranks[i]], size_objets);
   }
 
-  size_t cluster_rank;
-  size_t medoid_rank;
-  size_t cost_actual = INT_MAX;
-  size_t cost_before = INT_MAX;
+  size_t cluster_rank; size_t medoid_rank;
+  size_t cost_actual = INT_MAX; size_t cost_before = INT_MAX;
+
   size_t cost = get_cost(medoids_ranks, nbr_cluster, nbr_objets, distance);
 
   int medoids_ranks_candidat[nbr_cluster];
@@ -156,14 +158,12 @@ DATA* pam_verbose (DATA dataset, size_t nbr_cluster) {
     for (size_t y=0; y < nbr_cluster; y++) {
       for (size_t k=0; k < nbr_objets; k++) {
         if (is_medoid[k]) continue;
-        for (size_t j=0; j<nbr_cluster; j++) medoids_ranks_candidat[j] = medoids_ranks[j];
+        for (size_t j=0; j<nbr_cluster; j++)
+          medoids_ranks_candidat[j] = medoids_ranks[j];
 
         size_t cost_candidat;
 
         medoids_ranks_candidat[y] = k;
-        //printf("Trying\n");
-        //for (size_t i=0; i<nbr_cluster; i++) print_element(data_set.objets[medoids_ranks_candidat[i]], size_objets);
-
         cost_candidat = get_cost(medoids_ranks_candidat, nbr_cluster, nbr_objets, distance);
 
         if (cost_candidat < cost_actual) {
@@ -174,21 +174,23 @@ DATA* pam_verbose (DATA dataset, size_t nbr_cluster) {
       }
       if (cost_actual < cost)
         cost = cost_actual;
-
-      printf("cost = %ld\n", cost_actual);
     }
-    printf("cost %ld | cost before %ld\n", cost, cost_before);
+
+    printf("\n//-> SWAP\n");
+    print_element(dataset.objets[medoids_ranks[medoid_rank]], size_objets);
+    print_element(dataset.objets[cluster_rank], size_objets);
+    printf("Coût %ld => %ld\n", cost_before, cost);
+    printf("-//\n\n");
 
     is_medoid[medoids_ranks[medoid_rank]] = false;
     medoids_ranks[medoid_rank] = cluster_rank;
     is_medoid[medoids_ranks[medoid_rank]] = true;
 
-    for (size_t j=0; j<nbr_cluster; j++) print_element(dataset.objets[medoids_ranks[j]], size_objets);
-    for (size_t n=0; n<nbr_objets; n++) printf("%d ",is_medoid[n]);
-    printf("\n");
+    for (size_t j=0; j<nbr_cluster; j++)
+      print_element(dataset.objets[medoids_ranks[j]], size_objets);
   }
 
-  printf("cout final : %ld\n", cost);
+  printf("\n//-> Coût final : %ld\n", cost);
 
   return create_clusters(dataset, medoids_ranks, nbr_cluster, nbr_objets, distance);;
 }
@@ -201,10 +203,7 @@ DATA* pam_verbose (DATA dataset, size_t nbr_cluster) {
  * - nbr_cluster : Stocke le nombre de clusters entré en argument et la renvoie via un pointeur
 */
 int command(char** argv, DATA** clusters, int* nbr_clusters) {
-  if (argv[1] == NULL){
-    usage();
-    return 1;
-  }
+  if (argv[1] == NULL) return 1;
 
   // Mode sans affichage, n'affiche que le cout final et les clusters associé à ce coût
   if (!strcmp(argv[1], "-f")) {

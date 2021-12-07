@@ -10,9 +10,8 @@
  * - char* string : Chaîne de caractères contenant le potentien nombre
 */
 int is_number(char* string) {
-  for (size_t i=0; i<strlen(string)-1; i++) {
+  for (size_t i=0; i<strlen(string)-1; i++)
     if (!isdigit(string[i])) return 0;
-  }
   return 1;
 }
 
@@ -23,9 +22,8 @@ int is_number(char* string) {
 */
 int pick_rand_number(size_t max, bool* check) {
   int ret = rand()%max;
-  while (check[ret])
-    ret = rand()%max;
-  check[ret] = true;
+  // Tant que la valeur choisie a déjà étée prise on en prend un autre
+  while (check[ret]) ret = rand()%max;
 
   return ret;
 }
@@ -45,7 +43,7 @@ void print_values(DATA dataset) {
 }
 
 /*
- * Affiche un element d'un dataset
+ * Affiche un objet d'un dataset
  * - elmnt data   : donnee a affichee
  * - size_elmnts  : nombre d'element qui caracterisent l'element
 */
@@ -61,9 +59,12 @@ void print_element(OBJET obj, size_t size_elmnts) {
 */
 void usage(){
   printf("\n[USAGE]\n"
-         "À partir d'un fichier : ./pam -f <file.csv> <Nombre de clusters>\n"
-         "À partir d'un dataset crée avec des valeurs aléatoires :"
-         "./pam -r <Nombres objets> <Nombre de points définissant un objet> <Valeur aléatoire maximale d'un point>\n"
+         "2 manières d'utiliser le programme :"
+         " - Le dataset est dans un fichier : ./pam -f <file.csv> <Nombre de clusters>\n"
+         " - Création du dataset avec des valeurs aléatoires :\n"
+         "     ./pam -r <Nombres objets> <Nombre de points définissant un objet> <Valeur aléatoire maximale d'un point>\n"
+         "\n"
          "Pour avoir le mode avec le détail de chaque opération, inscrire -v (verbose) à la fin de la commande.\n"
-         "[EXEMPLE] ./pam -d data.csv 4 -v\n");
+         "[EXEMPLE] ./pam -f data.csv 4 -v\n"
+         "          ./pam -r 100 4 10 10 -v");
 }
